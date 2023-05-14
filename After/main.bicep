@@ -7,6 +7,18 @@ param containerAppEnvName string = 'env-${uniqueString(resourceGroup().id)}'
 @description('Specifies the name of the log analytics workspace.')
 param containerAppLogAnalyticsName string = 'log-${uniqueString(resourceGroup().id)}'
 
+@description('Specifies the name of the virtual network.')
+param virtualNetworkName string = 'vnet-${uniqueString(resourceGroup().id)}'
+
+@description('Address prefix')
+param vnetAddressPrefix string = '10.0.0.0/16'
+
+@description('Container App environment subnet name')
+param containerAppEnvSubnetName string = 'Subnet1'
+
+@description('Container App environment subnet prefix')
+param containerAppEnvSubnetPrefix string = '10.0.0.0/23'
+
 @description('Specifies the location for all resources.')
 param location string = resourceGroup().location
 
@@ -61,12 +73,29 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   }
 }
 
-resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
+resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' = {
+  name: virtualNetworkName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        vnetAddressPrefix
+      ]
+    }
+    subnets: [
+      {
+        name: containerAppEnvSubnetName
+        properties: {
+          addressPrefix: containerAppEnvSubnetPrefix
+        }
+      }
+    ]
+  }
+}
+
+resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-03-01' = {
   name: containerAppEnvName
   location: location
-  sku: {
-    name: 'Consumption'
-  }
   properties: {
     appLogsConfiguration: {
       destination: 'log-analytics'
@@ -75,10 +104,13 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-06-01-preview' 
         sharedKey: logAnalytics.listKeys().primarySharedKey
       }
     }
+    vnetConfiguration: {
+      infrastructureSubnetId: vnet.properties.subnets[0].id
+    }
   }
 }
 
-resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
+resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
   name: containerAppName
   location: location
   properties: {
@@ -86,13 +118,6 @@ resource containerApp 'Microsoft.App/containerApps@2022-06-01-preview' = {
     configuration: {
       ingress: {
         external: true
-        ipSecurityRestrictions: [
-          {
-            action: 'Allow'
-            ipAddressRange: '5.64.24.169'
-            name: 'AllowHomeIP'
-          }
-        ]
         targetPort: targetPort
         allowInsecure: false
         traffic: [

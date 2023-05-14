@@ -192,3 +192,11 @@ To remove the restriction, go back to your Container App's **ingress** settings,
 ## Switching to an internal environment
 
 We will now restrict all access to our container app by changing our environment to an internal one. To do this, 
+
+## Clean up resources
+
+Once you are done with this lab, you should delete the resource group to prevent further charges to your Azure account. You can do so by running the following command:
+
+```bicep
+az group delete -n $RG_NAME
+```

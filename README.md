@@ -191,7 +191,56 @@ To remove the restriction, go back to your Container App's **ingress** settings,
 
 ## Switching to an internal environment
 
-We will now restrict all access to our container app by changing our environment to an internal one. To do this, 
+We will now restrict all access to our container app by changing our environment to an internal one. To do this, we will create a new resource group with all of our resources.
+
+```bash
+# If you need to, login
+az login
+
+# Set variables for the name and location of your resource group
+RG_NAME='<name-of-your-resource-group>'
+LOCATION='<azure-region-near-you>'
+
+# Create the resource group
+az group create --name $RG_NAME --location $LOCATION
+```
+
+Once your resource group has been successfully created, you can start to write out your Bicep template.
+
+In our Bicep template, it's similar to the template that we created for our external environment, with one minor change for our Container App Environment resource:
+
+```bicep
+resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
+  name: containerAppEnvName
+  location: location
+  sku: {
+    name: 'Consumption'
+  }
+  properties: {
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: logAnalytics.properties.customerId
+        sharedKey: logAnalytics.listKeys().primarySharedKey
+      }
+    }
+    vnetConfiguration: {
+      infrastructureSubnetId: vnet.properties.subnets[0].id
+      internal: true
+    }
+  }
+}
+```
+
+By setting the ```internal``` flag to true, we are setting this environment to internal which means there will be no public endpoint for our Container App environment. 
+
+Once your resource has been deployed, go into the Azure portal and navigate to your new environment. You'll see that the static IP address for the environment is mapped to an internal IP address from your custom VNet:
+
+![Picture of our internal environment with a private static IP](/media/internal-environment-ca.png)
+
+We can confirm that public access is disabled for our Container App by navigating to the Container App URL. We should see the following:
+
+![Picture of Container App in internal environment showing 404](/media/internal-ca-web.png)
 
 ## Clean up resources
 

@@ -111,19 +111,19 @@ az deployment group create --resource-group $RG_NAME --template-file main.bicep
 
 Navigate to your resource group in the Azure Portal and verify that the resources have been deployed successfully. You should see something similar to the following:
 
-![Picture of resources deployed defined in our Bicep template](../aca-networking/media/external-environment-resources.png)
+![Picture of resources deployed defined in our Bicep template](media/external-environment-resources.png)
 
 Click on your virtual network resource, then under **Settings** click **Subnets**. You'll see that our subnet that we defined in our template has been successfully provisioned with the address prefix that we defined for it in our template:
 
-![Picture of the subnet that we defined in our Bicep template](../aca-networking/media/external-environment-subnet.png)
+![Picture of the subnet that we defined in our Bicep template](media/external-environment-subnet.png)
 
 Navigate to your Container App environment. Here we can see that our Container App environment has been successfully integrated with our defined virtual network and the subnet we created as part of that virtual network. We can also see that an external Public facing IP address has been provisioned for our environment:
 
-![Picture of the overview blade for our Container App environment](../aca-networking/media/external-environment-ca.png)
+![Picture of the overview blade for our Container App environment](media/external-environment-ca.png)
 
 Navigate to the Container App that was deployed as part of the template and click on the **Application Url**. The page should be accessible (since our environment is accepting traffic from the public internet) and we should see the following:
 
-![The external webpage of our container app](../aca-networking/media/external-environment-web.png)
+![The external webpage of our container app](media/external-environment-web.png)
 
 ## Switching to an internal environment
 

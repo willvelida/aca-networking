@@ -242,6 +242,15 @@ We can confirm that public access is disabled for our Container App by navigatin
 
 ![Picture of Container App in internal environment showing 404](/media/internal-ca-web.png)
 
+### I want to access my Container Apps, but keep them private. How can I do this?
+
+When you host your apps or microservices on Container Apps, you may not want to publish them on the internet directly, but expose them via a reverse proxy.
+
+There are a couple of methods that have been documented if you're interested in finding out more:
+
+- [Protect Azure Container Apps with Web Application Firewall on Application Gateway](https://learn.microsoft.com/en-us/azure/container-apps/waf-app-gateway?tabs=default-domain)
+- [Integrating Azure Front Door WAF with Azure Container Apps](https://techcommunity.microsoft.com/t5/fasttrack-for-azure/integrating-azure-front-door-waf-with-azure-container-apps/ba-p/3729081)
+
 ## Clean up resources
 
 Once you are done with this lab, you should delete the resource group to prevent further charges to your Azure account. You can do so by running the following command:

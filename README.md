@@ -125,27 +125,69 @@ Navigate to the Container App that was deployed as part of the template and clic
 
 ![The external webpage of our container app](media/external-environment-web.png)
 
-## Switching to an internal environment
+## Set up IP ingress restrictions
 
-We will now restrict all access to our container app by changing our environment to an internal one. To do this, we need to add another property to our ```vnetConfiguration``` object in our Container App environment resource block:
+We can limit inbound traffic to our Container App by configuring IP ingress restrictions via the ingress configuration.
+
+There are two types of restrictions:
+
+- *Allow* - allowing traffic originating from specified IP ranges.
+- *Deny* - Deny all inbound traffic from specified IP ranges.
+
+Let's create a rule that denies all inbound traffic to our Container App from our IP address. To achieve this, we need to make changes to the ```ingress``` object in our Container App Bicep resource:
 
 ```bicep
-resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
-  // Emitted for brevity
-    vnetConfiguration: {
-      infrastructureSubnetId: vnet.properties.subnets[0].id
-      internal: true
+resource containerApp 'Microsoft.App/containerApps@2022-10-01' = {
+  // Omitted
+  properties: {
+    managedEnvironmentId: containerAppEnv.id
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: targetPort
+        allowInsecure: false
+        ipSecurityRestrictions: [
+          {
+            name: 'deny-our-ip'
+            action: 'Deny'
+            ipAddressRange: '<Your-IP-Address>'
+          }
+        ]
+        traffic: [
+          {
+            latestRevision: true
+            weight: 100
+          }
+        ]
+      }
     }
+    template: {
+        // Omitted for brevity
+    }
+  }
 }
 ```
 
-Here, we are simply setting the ```internal``` property to true, indicating that this will be an internal Container App environment.
+Within our ```ipSecurityRestrictions``` array, we define an IP restriction rule that denies all traffic originating from the defined IP address to the Container App. To find your IP address, you can use [whatsmyipaddress.com](https://whatismyipaddress.com/). Just remember that the ```ipAddressRange``` parameter accepts IPv4 addresses.
 
-Redeploy your template by running the following command:
+Save your template and redeploy it with the following command:
 
 ```bash
 az deployment group create --resource-group $RG_NAME --template-file main.bicep
 ```
 
-*NOTE: If you've created an external parameters file, you can pass this through to the command by using the* ```--parameters``` *flag*.
+*NOTE: Don't forget your parameters file if you're using an external file!*.
 
+Once that's finished, navigate to your container app and click on **Ingress** under **Settings**. Scroll down and you should see that our new inbound IP restriction has been applied to the container app:
+
+![Picture of our Container App's ingress settings with the new IP restriction rule applied](/media/ip-restriction-ca.png)
+
+We can validate that no traffic is authorized through our IP address by navigating to our Container App's URL. We should see the following response:
+
+![Picture showing access denied error on Container App with IP inbound restriction rule applied](/media/ip-restriction-web.png)
+
+To remove the restriction, go back to your Container App's **ingress** settings, scroll down to **IP Restrictions** and choose the *Allow all traffic (default)* option. Click **Save** to apply the settings.
+
+## Switching to an internal environment
+
+We will now restrict all access to our container app by changing our environment to an internal one. To do this, 

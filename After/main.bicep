@@ -109,7 +109,6 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
     }
     vnetConfiguration: {
       infrastructureSubnetId: vnet.properties.subnets[0].id
-      internal: true
     }
   }
 }
@@ -124,6 +123,13 @@ resource containerApp 'Microsoft.App/containerApps@2022-10-01' = {
         external: true
         targetPort: targetPort
         allowInsecure: false
+        ipSecurityRestrictions: [
+          {
+            name: 'deny-our-ip'
+            action: 'Deny'
+            ipAddressRange: '84.198.160.178'
+          }
+        ]
         traffic: [
           {
             latestRevision: true

@@ -2,8 +2,9 @@
 
 In this lab, you'll gain some experience of working with Virtual Networks and Container Apps. You'll learn:
 
-- The difference between external and internal Container App environments
-- How to integrate a virtual network with an external Azure Container Apps environment using Bicep
+- The difference between external and internal Container App environments.
+- How to integrate a virtual network with an external Azure Container Apps environment using Bicep.
+- How to apply Inbound IP restriction rules to your Container Apps.
 - How to disable ingress to the Container App environment with internal environments.
 
 ## Networking in Container Apps

@@ -93,9 +93,12 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-07-01' = {
   }
 }
 
-resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-03-01' = {
+resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   name: containerAppEnvName
   location: location
+  sku: {
+    name: 'Consumption'
+  }
   properties: {
     appLogsConfiguration: {
       destination: 'log-analytics'
@@ -106,11 +109,12 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-03-01' = {
     }
     vnetConfiguration: {
       infrastructureSubnetId: vnet.properties.subnets[0].id
+      internal: true
     }
   }
 }
 
-resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2022-10-01' = {
   name: containerAppName
   location: location
   properties: {

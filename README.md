@@ -76,9 +76,12 @@ Workload Profiles Architecture (currently in preview) need a */27* or larger CID
 With our subnet resource defined, we can now define our Container App environment resource and deploy it with our virtual network created. To do so, write the following Bicep
 
 ```bicep
-resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-03-01' = {
+resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
   name: containerAppEnvName
   location: location
+  sku: {
+    name: 'Consumption'
+  }
   properties: {
     appLogsConfiguration: {
       destination: 'log-analytics'
@@ -105,3 +108,44 @@ az deployment group create --resource-group $RG_NAME --template-file main.bicep
 ```
 
 *NOTE: If you've created an external parameters file, you can pass this through to the command by using the* ```--parameters``` *flag*.
+
+Navigate to your resource group in the Azure Portal and verify that the resources have been deployed successfully. You should see something similar to the following:
+
+![Picture of resources deployed defined in our Bicep template](../aca-networking/media/external-environment-resources.png)
+
+Click on your virtual network resource, then under **Settings** click **Subnets**. You'll see that our subnet that we defined in our template has been successfully provisioned with the address prefix that we defined for it in our template:
+
+![Picture of the subnet that we defined in our Bicep template](../aca-networking/media/external-environment-subnet.png)
+
+Navigate to your Container App environment. Here we can see that our Container App environment has been successfully integrated with our defined virtual network and the subnet we created as part of that virtual network. We can also see that an external Public facing IP address has been provisioned for our environment:
+
+![Picture of the overview blade for our Container App environment](../aca-networking/media/external-environment-ca.png)
+
+Navigate to the Container App that was deployed as part of the template and click on the **Application Url**. The page should be accessible (since our environment is accepting traffic from the public internet) and we should see the following:
+
+![The external webpage of our container app](../aca-networking/media/external-environment-web.png)
+
+## Switching to an internal environment
+
+We will now restrict all access to our container app by changing our environment to an internal one. To do this, we need to add another property to our ```vnetConfiguration``` object in our Container App environment resource block:
+
+```bicep
+resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-10-01' = {
+  // Emitted for brevity
+    vnetConfiguration: {
+      infrastructureSubnetId: vnet.properties.subnets[0].id
+      internal: true
+    }
+}
+```
+
+Here, we are simply setting the ```internal``` property to true, indicating that this will be an internal Container App environment.
+
+Redeploy your template by running the following command:
+
+```bash
+az deployment group create --resource-group $RG_NAME --template-file main.bicep
+```
+
+*NOTE: If you've created an external parameters file, you can pass this through to the command by using the* ```--parameters``` *flag*.
+
